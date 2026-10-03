@@ -147,6 +147,9 @@ pub(crate) async fn request(daemon: &Daemon) -> Result<UpdateOutput> {
 }
 
 pub(super) fn supported(daemon: &Daemon) -> Result<bool> {
+    if !daemon.selected_binary_is_managed()? {
+        return Ok(false);
+    }
     if daemon.is_stable_standalone_release()? {
         return Ok(true);
     }
