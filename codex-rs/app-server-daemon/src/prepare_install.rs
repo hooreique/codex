@@ -27,13 +27,20 @@ pub struct InstallRequest {
 /// Prepare a missing package while the caller holds the daemon operation lock.
 pub(super) async fn prepare(daemon: &Daemon, settings: &DaemonSettings) -> Result<()> {
     let source = InstallContext::current().package_layout.as_ref();
+    let running_exe = std::env::current_exe()?;
+    if source.is_none()
+        && daemon.managed_codex_bin == running_exe
+        && daemon.current_managed_codex_bin()? == running_exe
+    {
+        return daemon.ensure_managed_codex_bin();
+    }
     // Keep package replacement state out of the CLI dispatcher's async stack frame.
     Box::pin(prepare_from_package(
         daemon,
         settings,
         InstallMode::Missing,
         source.map(|layout| layout.package_dir.as_path()),
-        &std::env::current_exe()?,
+        &running_exe,
         |_| Ok(true),
     ))
     .await

@@ -94,7 +94,8 @@ $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.c
 it copies the invoking package into `CODEX_HOME/packages/app-server-daemon` and
 prints an installation message without asking for confirmation. Existing daemon
 packages are reused, including legacy installations; a broken selection is not
-silently replaced. A bare executable cannot supply a new installation.
+silently replaced. When the CLI has no complete package and no daemon package is
+installed, it uses the current executable without installing a daemon package.
 
 It records the daemon settings under `CODEX_HOME/app-server-daemon/`, starts app-server as a
 pidfile-backed detached process. It launches a detached updater loop when
@@ -144,6 +145,13 @@ For dedicated and retained legacy daemon installations:
   starts it again
 
 ### Out-of-band updates
+
+For externally managed installations such as Nix that have no complete CLI
+package, the daemon uses the current Codex executable when no daemon package is
+installed and does not start the standalone installer or updater. Update Codex
+with its owning package manager, stop the daemon, then start it with the new
+`codex` to use the new version.
+The daemon does not watch Nix profiles or add automatic startup after reboot.
 
 This daemon does not watch arbitrary executable files for replacement. If some
 other tool updates the managed binary path:

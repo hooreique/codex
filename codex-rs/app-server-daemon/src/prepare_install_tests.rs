@@ -50,6 +50,108 @@ fn package(root: &Path, version: &str) -> PathBuf {
 }
 
 #[tokio::test]
+async fn external_binary_survives_refresh_and_preparation() {
+    let home = tempfile::TempDir::new().expect("home");
+    let initial = daemon(home.path());
+    let settings = DaemonSettings::default();
+    let executable = std::env::current_exe().expect("current executable");
+    let state = home.path().join("app-server-daemon");
+
+    for (log_name, pid_name, updater_name) in [
+        (
+            None,
+            crate::DAEMON_PID_FILE_NAME,
+            crate::DAEMON_UPDATE_PID_FILE_NAME,
+        ),
+        (
+            Some("daemon.stderr.log"),
+            crate::DAEMON_PID_FILE_NAME,
+            crate::DAEMON_UPDATE_PID_FILE_NAME,
+        ),
+        (
+            Some("app-server.stderr.log"),
+            crate::LEGACY_PID_FILE_NAME,
+            crate::LEGACY_UPDATE_PID_FILE_NAME,
+        ),
+    ] {
+        if let Some(log_name) = log_name {
+            std::fs::create_dir_all(&state).expect("state directory");
+            std::fs::write(state.join(log_name), b"").expect("daemon log");
+        }
+        let selected = initial.current_installation().expect("refresh selection");
+        super::prepare(&selected, &settings)
+            .await
+            .expect("use external executable");
+        assert_eq!(
+            (
+                selected.managed_codex_bin,
+                selected.pid_file,
+                selected.update_pid_file,
+            ),
+            (
+                executable.clone(),
+                state.join(pid_name),
+                state.join(updater_name),
+            )
+        );
+        assert!(!home.path().join("packages").exists());
+        if let Some(log_name) = log_name {
+            std::fs::remove_file(state.join(log_name)).expect("remove daemon log");
+        }
+    }
+}
+
+#[tokio::test]
+async fn dedicated_selection_overrides_external_fallback_even_when_broken() {
+    let home = tempfile::TempDir::new().expect("home");
+    let external = daemon(home.path())
+        .current_installation()
+        .expect("external selection");
+    assert_eq!(
+        external.managed_codex_bin,
+        std::env::current_exe().expect("current executable")
+    );
+    let settings = DaemonSettings::default();
+    let root = home.path().join("packages/app-server-daemon");
+    package(&root.join("releases/existing"), "0.152.0");
+    let current = root.join("current");
+    std::os::unix::fs::symlink("releases/existing", &current).expect("select package");
+
+    let error = super::prepare(&external, &settings)
+        .await
+        .expect_err("selection changed after choosing external executable");
+    assert!(
+        error
+            .to_string()
+            .contains("daemon package location changed")
+    );
+    let selected = external.current_installation().expect("refresh selection");
+    assert_eq!(selected.managed_codex_bin, current.join("bin/codex"));
+    super::prepare(&selected, &settings)
+        .await
+        .expect("reuse selected package");
+
+    std::fs::remove_file(&current).expect("remove selection");
+    std::os::unix::fs::symlink("missing-release", &current).expect("broken selection");
+    let broken = external
+        .current_installation()
+        .expect("refresh broken selection");
+    assert_eq!(broken.managed_codex_bin, current.join("bin/codex"));
+    let error = super::prepare(&broken, &settings)
+        .await
+        .expect_err("broken selection must not fall back");
+    assert!(
+        error
+            .to_string()
+            .contains("repair the existing installation")
+    );
+    assert_eq!(
+        std::fs::read_link(current).expect("preserved broken selection"),
+        PathBuf::from("missing-release")
+    );
+}
+
+#[tokio::test]
 async fn seeds_full_package() {
     let temp = tempfile::TempDir::new().expect("temp");
     let home = temp.path().join("home");
