@@ -40,7 +40,7 @@ use codex_app_server_protocol::RemoteControlConnectionStatus;
 use codex_app_server_protocol::RemoteControlPairingStartResponse;
 use codex_app_server_transport::app_server_control_socket_path;
 use codex_utils_home_dir::find_codex_home;
-use managed_install::managed_codex_bin;
+use managed_install::daemon_codex_bin;
 #[cfg(any(unix, windows))]
 use managed_install::managed_codex_version;
 use serde::Serialize;
@@ -354,10 +354,10 @@ impl Daemon {
             .as_path()
             .to_path_buf();
         let state_dir = codex_home.as_path().join(STATE_DIR_NAME);
-        let managed_codex_bin = managed_codex_bin(codex_home.as_path());
+        let managed_codex_bin = daemon_codex_bin(codex_home.as_path())?;
         // Old CLIs must not mistake a daemon-owned installation for their backend.
         let (pid_file, update_pid_file) =
-            if managed_codex_bin.starts_with(codex_home.as_path().join("packages/standalone")) {
+            if managed_install::package_root(codex_home.as_path()).ends_with("standalone") {
                 (LEGACY_PID_FILE_NAME, LEGACY_UPDATE_PID_FILE_NAME)
             } else {
                 (DAEMON_PID_FILE_NAME, DAEMON_UPDATE_PID_FILE_NAME)
@@ -399,7 +399,7 @@ impl Daemon {
             .parent()
             .and_then(Path::parent)
             .context("daemon settings path has no Codex home")?;
-        let (pid, updater) = if managed_codex_bin.starts_with(home.join("packages/standalone")) {
+        let (pid, updater) = if managed_install::package_root(home).ends_with("standalone") {
             (LEGACY_PID_FILE_NAME, LEGACY_UPDATE_PID_FILE_NAME)
         } else {
             (DAEMON_PID_FILE_NAME, DAEMON_UPDATE_PID_FILE_NAME)
@@ -988,7 +988,7 @@ impl Daemon {
 
     async fn ensure_managed_updater(&self, settings: &DaemonSettings) -> Result<bool> {
         let updater = backend::pid_update_loop_backend(self.backend_paths(settings));
-        if !settings.auto_update_enabled {
+        if !settings.auto_update_enabled || !self.selected_binary_is_managed()? {
             updater.stop().await?;
             return Ok(false);
         }
@@ -1037,6 +1037,18 @@ impl Daemon {
         ))
     }
 
+    fn selected_binary_is_managed(&self) -> Result<bool> {
+        let codex_home = self
+            .settings_file
+            .parent()
+            .and_then(Path::parent)
+            .context("daemon settings path has no Codex home")?;
+        // Keep ownership across installer transitions from current/codex to bin/codex.
+        Ok(self
+            .managed_codex_bin
+            .starts_with(managed_install::package_root(codex_home)))
+    }
+
     fn current_managed_codex_bin(&self) -> Result<PathBuf> {
         // An installer can move a legacy binary into bin/ while this updater runs.
         let home = self
@@ -1044,7 +1056,7 @@ impl Daemon {
             .parent()
             .and_then(Path::parent)
             .context("daemon settings path has no Codex home")?;
-        Ok(managed_install::managed_codex_bin(home))
+        daemon_codex_bin(home)
     }
 
     fn has_latest_selection_marker(&self) -> bool {
@@ -1060,6 +1072,7 @@ impl Daemon {
 
     async fn is_bootstrapped(&self, settings: &DaemonSettings) -> Result<bool> {
         if !settings.auto_update_enabled
+            || !self.selected_binary_is_managed()?
             || !self.is_stable_standalone_release()?
             || !managed_install::supports_daemon_update_loop(&self.managed_codex_bin).await
         {
@@ -1394,7 +1407,7 @@ mod tests {
             update_pid_file: state.join(super::LEGACY_UPDATE_PID_FILE_NAME),
             operation_lock_file: state.join("daemon.lock"),
             settings_file: state.join("settings.json"),
-            managed_codex_bin: super::managed_codex_bin(home.path()),
+            managed_codex_bin: crate::managed_install::managed_codex_bin(home.path()),
         };
         let lock = daemon.acquire_operation_lock().await.expect("lock");
         let stop = daemon.run(super::LifecycleCommand::Stop);
@@ -1412,7 +1425,7 @@ mod tests {
             (output.status, output.managed_codex_path),
             (
                 LifecycleStatus::NotRunning,
-                super::managed_codex_bin(home.path())
+                crate::managed_install::managed_codex_bin(home.path())
             )
         );
     }

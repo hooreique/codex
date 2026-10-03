@@ -8,6 +8,7 @@ use std::time::Duration;
 use anyhow::Context;
 use anyhow::Result;
 use anyhow::anyhow;
+use codex_install_context::InstallContext;
 use serde::Deserialize;
 use serde::Serialize;
 use tokio::fs;
@@ -53,6 +54,24 @@ pub(crate) fn package_root(codex_home: &Path) -> PathBuf {
         }
     }
     dedicated
+}
+
+/// Use an external CLI when it has no package to seed and no daemon is installed.
+/// Existing installations, including broken selections, retain their managed paths.
+pub(crate) fn daemon_codex_bin(codex_home: &Path) -> Result<PathBuf> {
+    let managed = managed_codex_bin(codex_home);
+    let root = package_root(codex_home);
+    if managed.is_file()
+        || !matches!(root.join("current").symlink_metadata(),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound)
+        || !matches!(root.join("releases").symlink_metadata(),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound)
+        || InstallContext::current().package_layout.is_some()
+    {
+        Ok(managed)
+    } else {
+        std::env::current_exe().context("failed to resolve current Codex executable for daemon")
+    }
 }
 
 /// Resolve both packaged and legacy binaries without requiring a valid install.
