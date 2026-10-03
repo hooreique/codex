@@ -454,6 +454,98 @@ fn manual_update_daemon(home: &TempDir) -> (Daemon, String) {
 }
 
 #[cfg(unix)]
+#[tokio::test]
+async fn managed_layout_change_preserves_updater_and_manual_update_support() {
+    let home = TempDir::new().expect("home");
+    let (daemon, release) = manual_update_daemon(&home);
+    let settings = crate::settings::DaemonSettings::default();
+    let updater = crate::backend::pid_update_loop_backend(daemon.backend_paths(&settings));
+    updater.start().await.expect("start updater");
+
+    let root = home.path().join("packages/standalone");
+    let next = release.replacen("1.0.0", "1.1.0", /*count*/ 1);
+    let packaged = root.join("releases").join(&next).join("bin/codex");
+    std::fs::create_dir_all(packaged.parent().expect("bin directory"))
+        .expect("new release directory");
+    std::fs::copy(&daemon.managed_codex_bin, &packaged).expect("packaged executable");
+    std::fs::remove_file(root.join("current")).expect("remove old selection");
+    std::os::unix::fs::symlink(format!("releases/{next}"), root.join("current"))
+        .expect("select packaged release");
+    std::fs::write(root.join("auto-update-version"), next).expect("latest marker");
+
+    assert_eq!(
+        (
+            daemon
+                .selected_binary_is_managed()
+                .expect("managed selection"),
+            super::manual_update::supported(&daemon).expect("latest update support"),
+        ),
+        (true, true)
+    );
+    assert!(
+        !daemon
+            .ensure_managed_updater(&settings)
+            .await
+            .expect("preserve existing updater")
+    );
+    assert!(
+        updater
+            .is_starting_or_running()
+            .await
+            .expect("updater state")
+    );
+
+    std::fs::remove_file(root.join("auto-update-version")).expect("pin packaged release");
+    assert!(super::manual_update::supported(&daemon).expect("pinned update support"));
+    updater.stop().await.expect("stop updater");
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn external_binary_does_not_start_updater_with_standalone_install() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let home = TempDir::new().expect("home");
+    let external = home.path().join("external-codex");
+    // An executable that would support the updater if it were probed.
+    std::fs::write(&external, b"#!/bin/sh\nexit 0\n").expect("external binary");
+    std::fs::set_permissions(&external, std::fs::Permissions::from_mode(0o755))
+        .expect("executable external binary");
+    let (mut daemon, _) = manual_update_daemon(&home);
+    daemon.managed_codex_bin = external;
+    let settings = crate::settings::DaemonSettings::default();
+
+    for installation in ["latest", "pinned", "absent"] {
+        if installation == "pinned" {
+            std::fs::remove_file(home.path().join("packages/standalone/auto-update-version"))
+                .expect("remove marker");
+        } else if installation == "absent" {
+            std::fs::remove_dir_all(home.path().join("packages/standalone"))
+                .expect("remove standalone install");
+        }
+        assert!(
+            !daemon
+                .ensure_managed_updater(&settings)
+                .await
+                .expect("external binary skips updater")
+        );
+        assert!(!daemon.update_pid_file.exists());
+        assert_eq!(
+            super::request_manual_update(
+                &daemon,
+                codex_http_client::HttpClientFactory::new(
+                    codex_http_client::OutboundProxyPolicy::ReqwestDefault,
+                ),
+            )
+            .await
+            .expect("external installation update response")
+            .status,
+            UpdateStatus::Unsupported
+        );
+    }
+}
+
+#[cfg(unix)]
 fn test_terminate() -> tokio::signal::unix::Signal {
     tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
         .expect("install test signal handler")

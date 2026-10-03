@@ -11,6 +11,10 @@ fn discovers_package_and_legacy_installs() {
             .join("packages/app-server-daemon/current/bin")
             .join(super::managed_codex_file_name())
     );
+    assert_eq!(
+        super::daemon_codex_bin(home.path()).expect("fallback executable"),
+        std::env::current_exe().expect("current executable")
+    );
     std::fs::create_dir_all(&current).expect("current directory");
     std::fs::write(&legacy, b"legacy").expect("legacy executable");
     let state = home.path().join("app-server-daemon");
@@ -25,15 +29,27 @@ fn discovers_package_and_legacy_installs() {
     );
     std::fs::write(state.join("app-server.stderr.log"), b"").unwrap();
     assert_eq!(super::managed_codex_bin(home.path()), legacy);
+    assert_eq!(
+        super::daemon_codex_bin(home.path()).expect("legacy"),
+        legacy
+    );
     let packaged = current.join("bin").join(super::managed_codex_file_name());
     std::fs::create_dir(current.join("bin")).expect("bin directory");
     std::fs::write(&packaged, b"packaged").expect("packaged executable");
     assert_eq!(super::managed_codex_bin(home.path()), packaged);
+    assert_eq!(
+        super::daemon_codex_bin(home.path()).expect("packaged"),
+        packaged
+    );
 
     std::fs::remove_dir_all(home.path().join("packages/standalone")).unwrap();
     assert_eq!(
         super::package_root(home.path()),
         home.path().join("packages/standalone")
+    );
+    assert_eq!(
+        super::daemon_codex_bin(home.path()).expect("fallback after legacy removal"),
+        std::env::current_exe().expect("current executable")
     );
     std::fs::remove_file(state.join("app-server.stderr.log")).unwrap();
     std::fs::write(state.join("app-server.pid"), b"running daemon").unwrap();

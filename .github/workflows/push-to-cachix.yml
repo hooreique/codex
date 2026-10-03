@@ -1,0 +1,47 @@
+name: push-to-cachix
+
+on:
+  push:
+    branches: [main]
+    # Skip documentation-only pushes. Keep Markdown prompts under codex-rs
+    # eligible for builds because they can be embedded in the executable.
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'SECURITY.md'
+      - 'AGENTS.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  push-to-cachix:
+    runs-on: ${{ matrix.os }}
+    environment: hooreique
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-26, ubuntu-24.04-arm, ubuntu-24.04]
+
+    steps:
+      - name: Check Cachix configuration
+        run: test "${{ vars.CACHIX_CACHE != '' && secrets.CACHIX_AUTH_TOKEN != '' }}" = true
+
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@v31
+
+      - uses: cachix/cachix-action@v17
+        with:
+          name: ${{ vars.CACHIX_CACHE }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - run: nix build .#default --no-write-lock-file --print-build-logs
