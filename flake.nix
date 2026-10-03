@@ -24,13 +24,12 @@
       cargoToml = builtins.fromTOML (builtins.readFile ./codex-rs/Cargo.toml);
       cargoVersion = cargoToml.workspace.package.version;
 
-      # When building from a release commit the Cargo.toml already carries the
-      # real version (e.g. "0.101.0").  On the main branch it is the placeholder
-      # "0.0.0", so we fall back to a dev version derived from the flake source.
+      # Preserve release versions. For mainline builds use rust-v0.161.0-alpha.10,
+      # whose release base is one commit behind the 2026-10-01 upstream baseline.
       version =
         if cargoVersion != "0.0.0"
         then cargoVersion
-        else "0.0.0-dev+${self.shortRev or "dirty"}";
+        else "0.161.0-alpha.10";
     in
     {
       packages = forAllSystems (system:
@@ -39,11 +38,13 @@
             inherit system;
             overlays = [ rust-overlay.overlays.default ];
           };
+          rust = pkgs.rust-bin.fromRustupToolchainFile ./codex-rs/rust-toolchain.toml;
           codex-rs = pkgs.callPackage ./codex-rs {
             inherit version;
+            buildCommit = self.rev or self.dirtyRev or "unknown";
             rustPlatform = pkgs.makeRustPlatform {
-              cargo = pkgs.rust-bin.stable.latest.minimal;
-              rustc = pkgs.rust-bin.stable.latest.minimal;
+              cargo = rust;
+              rustc = rust;
             };
           };
         in
@@ -59,7 +60,7 @@
             inherit system;
             overlays = [ rust-overlay.overlays.default ];
           };
-          rust = pkgs.rust-bin.stable.latest.default.override {
+          rust = (pkgs.rust-bin.fromRustupToolchainFile ./codex-rs/rust-toolchain.toml).override {
             extensions = [ "rust-src" "rust-analyzer" ];
           };
         in
