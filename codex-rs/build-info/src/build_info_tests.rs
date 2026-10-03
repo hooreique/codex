@@ -40,7 +40,7 @@ fn packaged_runtime_uses_manifest_version() {
     );
 }
 
-/// Unpackaged builds expose their stamped commit and structured source version.
+/// Unpackaged builds expose their stamped commit and compiled workspace version.
 #[test]
 fn unpackaged_runtime_uses_build_commit() {
     let context = InstallContext::from_exe(
@@ -52,7 +52,7 @@ fn unpackaged_runtime_uses_build_commit() {
     assert_eq!(
         BuildInfo::resolve(&context, BUILD_COMMIT),
         BuildInfo {
-            version: Version::new(0, 0, 0),
+            version: Version::parse(env!("CARGO_PKG_VERSION")).expect("compiled workspace version"),
             build_commit: BUILD_COMMIT.to_string(),
             target: Some(env!("CODEX_BUILD_TARGET").to_string()),
         },
@@ -79,7 +79,7 @@ fn legacy_package_without_version_uses_build_commit() {
     assert_eq!(
         BuildInfo::resolve(&context, BUILD_COMMIT),
         BuildInfo {
-            version: Version::new(0, 0, 0),
+            version: Version::parse(env!("CARGO_PKG_VERSION")).expect("compiled workspace version"),
             build_commit: BUILD_COMMIT.to_string(),
             target: Some(env!("CODEX_BUILD_TARGET").to_string()),
         },
@@ -109,7 +109,7 @@ fn invalid_package_version_uses_build_commit() {
     assert_eq!(
         BuildInfo::resolve(&context, BUILD_COMMIT),
         BuildInfo {
-            version: Version::new(0, 0, 0),
+            version: Version::parse(env!("CARGO_PKG_VERSION")).expect("compiled workspace version"),
             build_commit: BUILD_COMMIT.to_string(),
             target: Some(env!("CODEX_BUILD_TARGET").to_string()),
         },
