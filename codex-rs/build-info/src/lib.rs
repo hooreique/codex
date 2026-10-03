@@ -74,7 +74,7 @@ impl BuildInfo {
         }
     }
 
-    /// Return the parsed package version, or `0.0.0` for a source build.
+    /// Return the package version, or the compiled workspace version without a manifest.
     pub fn version(&self) -> &Version {
         &self.version
     }
@@ -115,7 +115,8 @@ impl BuildInfo {
         }
 
         Self {
-            version: Version::new(0, 0, 0),
+            version: Version::parse(env!("CARGO_PKG_VERSION"))
+                .expect("compiled workspace version is valid semver"),
             build_commit: build_commit.to_owned(),
             target: Some(env!("CODEX_BUILD_TARGET").to_owned()),
         }
