@@ -1,8 +1,6 @@
 --- a/build/build_isolation_session_bindings.rs
 +++ b/build/build_isolation_session_bindings.rs
-@@ -5,6 +5,15 @@
- //! the version the generated bindings were produced for.
- 
+@@ -7,4 +7,13 @@
  pub(crate) fn run() {
 +    // These generated bindings are only compiled for the Windows isolation
 +    // session backend. A vendored parent lockfile can include unrelated windows
