@@ -1,0 +1,18 @@
+--- a/build/build_isolation_session_bindings.rs
++++ b/build/build_isolation_session_bindings.rs
+@@ -5,6 +5,15 @@
+ //! the version the generated bindings were produced for.
+ 
+ pub(crate) fn run() {
++    // These generated bindings are only compiled for the Windows isolation
++    // session backend. A vendored parent lockfile can include unrelated windows
++    // crate versions, so do not inspect it when the bindings are not in use.
++    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows")
++        || std::env::var_os("CARGO_FEATURE_ISOLATION_SESSION").is_none()
++    {
++        return;
++    }
++
+     // Keep provenance inside the package so crates.io builds enforce the same
+     // generated-binding version coupling as repository builds.
+     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();

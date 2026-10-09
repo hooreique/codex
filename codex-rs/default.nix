@@ -67,6 +67,13 @@ rustPlatform.buildRustPackage (_: {
   # this sed is a no-op.
   postPatch = ''
     sed -i 's/^version = "0\.0\.0"$/version = "${version}"/' Cargo.toml
+
+    # MXC's Windows-only binding check reads the first windows version from the
+    # parent lockfile after Nix flattens Git workspaces into the vendor directory.
+    # Codex also locks windows 0.58, although MXC correctly depends on 0.62.
+    # Apply the target/feature guard to the writable vendor copy, preserving the
+    # version check whenever those generated bindings are actually compiled.
+    patch -d "$cargoDepsCopy/mxc-sdk-1.0.0" -p1 --fuzz=0 < ${./nix/mxc-bindings-target-check.patch}
   '';
   doInstallCheck = stdenv.buildPlatform.canExecute stdenv.hostPlatform;
   installCheckPhase = ''
