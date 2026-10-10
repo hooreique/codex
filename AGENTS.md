@@ -38,6 +38,28 @@ Other messages do not automatically trigger this workflow.
 Inspect the actual configuration before acting. Do not confuse local `master`
 with a remote branch named `master` or rebase the upstream baseline onto the fork.
 
+### 0. Check and report related upstream work first
+
+- Before changing branches or starting the rebase, inspect the fork's downstream
+  delta and search the live open issues and pull requests in `openai/codex` for
+  work addressing the same goals. Include externally managed installations,
+  current-executable daemon fallback, managed installation repair, external
+  update ownership, and Nix packaging where relevant to the actual fork changes.
+- Read relevant issue and PR descriptions and discussions to assess overlap;
+  matching keywords alone are insufficient. Distinguish requests or proposals
+  from implemented changes, and open PRs from changes already merged upstream.
+- If related open issues or PRs exist, report them to the user **before proceeding
+  with the rebase**. Include links, their current status, the overlapping fork
+  behavior, and any implications for retaining or adapting downstream patches.
+  This preliminary report must not be deferred to the final maintenance summary.
+- If no relevant results are found, say so briefly. If the search cannot be
+  completed, report the limitation rather than claiming there are no matches.
+- Reporting related work does not by itself require approval or stop the
+  authorized maintenance workflow. Continue after reporting unless a genuine
+  ambiguity requires clarification. Do not drop a fork patch merely because an
+  open issue or PR proposes equivalent behavior; verify coverage in the refreshed
+  upstream baseline before adapting or removing it.
+
 ### 1. Preserve and inspect the starting state
 
 - Read applicable repository instructions and inspect status, current branch,
