@@ -38,23 +38,26 @@ Other messages do not automatically trigger this workflow.
 Inspect the actual configuration before acting. Do not confuse local `master`
 with a remote branch named `master` or rebase the upstream baseline onto the fork.
 
-### 0. Check and report related upstream work first
+### 0. Check and report the tracked upstream issue first
 
-- Before changing branches or starting the rebase, inspect the fork's downstream
-  delta and search the live open issues and pull requests in `openai/codex` for
-  work addressing the same goals. Include externally managed installations,
-  current-executable daemon fallback, managed installation repair, external
-  update ownership, and Nix packaging where relevant to the actual fork changes.
-- Read relevant issue and PR descriptions and discussions to assess overlap;
-  matching keywords alone are insufficient. Distinguish requests or proposals
-  from implemented changes, and open PRs from changes already merged upstream.
-- If related open issues or PRs exist, report them to the user **before proceeding
-  with the rebase**. Include links, their current status, the overlapping fork
-  behavior, and any implications for retaining or adapting downstream patches.
-  This preliminary report must not be deferred to the final maintenance summary.
-- If no relevant results are found, say so briefly. If the search cannot be
-  completed, report the limitation rather than claiming there are no matches.
-- Reporting related work does not by itself require approval or stop the
+- As the first maintenance step, before changing branches or starting the
+  rebase, inspect the live issue and its discussion at
+  https://github.com/openai/codex/issues/41188
+  (Support externally managed app-server daemon executables).
+- Check whether maintainers have responded, what they propose or commit to,
+  and whether concrete work addressing this issue is underway. Follow linked
+  PRs or commits and inspect their status and implementation where relevant.
+  Distinguish user support from maintainer responses, proposals from actual
+  implementation, and open PRs from changes already merged upstream.
+- Report the findings to the user **before proceeding with the rebase**,
+  including links, dates of relevant maintainer responses, issue and linked PR
+  status, and implications for retaining or adapting the fork's downstream
+  behavior. If there is no maintainer response or concrete implementation
+  evidence, say so. Do not defer this report to the final maintenance summary.
+- Limit this check to issue #41188 and work linked from it; do not perform an
+  additional general search for related issues or PRs. If the check cannot be
+  completed, report the limitation rather than claiming there is no progress.
+- Reporting this issue's progress does not by itself require approval or stop the
   authorized maintenance workflow. Continue after reporting unless a genuine
   ambiguity requires clarification. Do not drop a fork patch merely because an
   open issue or PR proposes equivalent behavior; verify coverage in the refreshed
