@@ -19,22 +19,22 @@ let
   v8Target = stdenv.hostPlatform.rust.rustcTarget;
   # Archive and bindings are a matching pair from the Codex V8 release.
   v8Hashes = {
-    "150.4.0" = {
+    "152.2.0" = {
       aarch64-apple-darwin = {
-        archive = "00adbb48798848c77550441c68673a5e8529b8e1b73eabcdee232cb39b40f4a1";
-        bindings = "ca5adf0cf89c9a70ad460ae73648b2fe89b74aa113b3cb7f757b6a02b758394f";
+        archive = "feab9ae0384bebaa99c1d000654462c9d42123d587185c7876aaeef7d76ff749";
+        bindings = "b9d5652ebca515eb2bf4c2ee4a6551b2567117b5aa720f430d2032616dd7e3b5";
       };
       aarch64-unknown-linux-gnu = {
-        archive = "d1517eed405468537029b005d5fe997ec74d5c8d351f916b3a6df20b7d2811ba";
-        bindings = "7727826ae479bdb645e807239fb12d1f8e2e23de7a6cf16f5ee592690d1d8506";
+        archive = "1054464a623006cdf5e25ae20877002bf3edb9a2c2f3e64f44a8714742b15e87";
+        bindings = "3e4d5fecdbe0f98a6017e69d7ca82519a77fb032c5eb5e4cdbecdd3e2ec519d5";
       };
       x86_64-apple-darwin = {
-        archive = "e0d9bb64e8b3a034c2930c83972f3f35760211148342fa0407b38250ef330856";
-        bindings = "ca5adf0cf89c9a70ad460ae73648b2fe89b74aa113b3cb7f757b6a02b758394f";
+        archive = "bfe19d9b633b61d99780ece89690427fef4b985c6b4196536eaf94571166fc24";
+        bindings = "b9d5652ebca515eb2bf4c2ee4a6551b2567117b5aa720f430d2032616dd7e3b5";
       };
       x86_64-unknown-linux-gnu = {
-        archive = "a35c75d1f26e6a983885a45b33490a4ebe54f05050568b32b89cfb421b30b583";
-        bindings = "7727826ae479bdb645e807239fb12d1f8e2e23de7a6cf16f5ee592690d1d8506";
+        archive = "b3b490f2aa809eda7f6ac727f851fb00ce8355be72827577cfaac28c7137dbcd";
+        bindings = "3e4d5fecdbe0f98a6017e69d7ca82519a77fb032c5eb5e4cdbecdd3e2ec519d5";
       };
     };
   }.${v8Version}.${v8Target};
@@ -87,10 +87,10 @@ rustPlatform.buildRustPackage (_: {
   cargoLock.outputHashes = {
     "crossterm-0.29.0" = "sha256-7ZzFZ6c6uU27ZxCGOPK82Aia4CzTnJwksAfbpTMPikY=";
     "h3-0.0.8" = "sha256-fgE0AMj5d4iattTC/yQwnACV8uEu+KR7wD29xfEm8M0=";
-    "appcontainer_common-0.8.0" = "sha256-XUkT2R+RYk9WIqgKnmIAagNW4xOTyp4bWHmQL1iznHw=";
+    "mxc-sdk-1.0.0" = "sha256-AI4l2yCbB/4UWweLFhEefEPqSt/ZB1V+Mk/svdAT8No=";
     "nucleo-0.5.0" = "sha256-Hm4SxtTSBrcWpXrtSqeO0TACbUxq3gizg1zD/6Yw/sI=";
     "nucleo-matcher-0.3.1" = "sha256-Hm4SxtTSBrcWpXrtSqeO0TACbUxq3gizg1zD/6Yw/sI=";
-    "rmcp-3.3.0" = "sha256-+VPObwPVKUy28cAd23RuorPAB9owaMTK0MDxuWHZdWQ=";
+    "rmcp-3.5.1" = "sha256-yczrrD6SnXhblos5oU6fbyDc7vkRah9DsF41hcaKzi4=";
     "runfiles-0.1.0" = "sha256-uJpVLcQh8wWZA3GPv9D8Nt43EOirajfDJ7eq/FB+tek=";
     "tokio-tungstenite-0.28.0" = "sha256-V1xmnrfRWOcZZogelZEA4vvyMj2awCfHVA5/glQ6KAI=";
     "tungstenite-0.27.0" = "sha256-VVHhk7l9J/sEmG3q/UuV/sQ3f+fGsmq5vumSy8vbMvw=";
