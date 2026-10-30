@@ -1,6 +1,7 @@
 {
   cmake,
   fetchurl,
+  fetchgit,
   llvmPackages,
   openssl,
   libcap ? null,
@@ -39,8 +40,17 @@ let
     };
   }.${v8Version}.${v8Target};
   v8Release = "https://github.com/openai/codex/releases/download/rusty-v8-v${v8Version}";
+  # V8 links the pinned prebuilt archive below; its Chromium source submodules
+  # are unnecessary. Fetch only the Rust crate tree when vendoring this source.
+  buildRustPackage = rustPlatform.buildRustPackage.override {
+    importCargoLock = rustPlatform.importCargoLock.override {
+      fetchgit = args: fetchgit (args // lib.optionalAttrs
+        (args.url == "https://github.com/seanh-oai/rusty_v8.git")
+        { fetchSubmodules = false; });
+    };
+  };
 in
-rustPlatform.buildRustPackage (_: {
+buildRustPackage (_: {
   env.STABLE_GIT_COMMIT = buildCommit;
   env.PKG_CONFIG_PATH = lib.makeSearchPathOutput "dev" "lib/pkgconfig" (
     [ openssl ] ++ lib.optionals stdenv.isLinux [ libcap ]
@@ -56,8 +66,8 @@ rustPlatform.buildRustPackage (_: {
   pname = "codex-rs";
   inherit version;
   cargoLock.lockFile = ./Cargo.lock;
-  # Package the CLI and its companion JavaScript host.
-  cargoBuildFlags = [ "-p" "codex-cli" "-p" "codex-code-mode-host" ];
+  # Package the CLI, JavaScript host, and upstream's standalone executor.
+  cargoBuildFlags = [ "-p" "codex-cli" "-p" "codex-code-mode-host" "-p" "codex-exec-server-cli" ];
   doCheck = false;
   src = ./.;
 
@@ -92,6 +102,7 @@ rustPlatform.buildRustPackage (_: {
   ];
 
   cargoLock.outputHashes = {
+    "v8-152.2.0" = "sha256-BB4a6uIcuZFmbkbXzdKOPq2vTu6pfZivPkHliOHnG3c=";
     "crossterm-0.29.0" = "sha256-7ZzFZ6c6uU27ZxCGOPK82Aia4CzTnJwksAfbpTMPikY=";
     "h3-0.0.8" = "sha256-fgE0AMj5d4iattTC/yQwnACV8uEu+KR7wD29xfEm8M0=";
     "mxc-sdk-1.0.0" = "sha256-AI4l2yCbB/4UWweLFhEefEPqSt/ZB1V+Mk/svdAT8No=";
