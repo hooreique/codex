@@ -45,7 +45,7 @@ let
   buildRustPackage = rustPlatform.buildRustPackage.override {
     importCargoLock = rustPlatform.importCargoLock.override {
       fetchgit = args: fetchgit (args // lib.optionalAttrs
-        (args.url == "https://github.com/seanh-oai/rusty_v8.git")
+        (args.url == "https://github.com/openai-oss-forks/rusty_v8.git")
         { fetchSubmodules = false; });
     };
   };
@@ -110,8 +110,9 @@ buildRustPackage (_: {
     "nucleo-matcher-0.3.1" = "sha256-Hm4SxtTSBrcWpXrtSqeO0TACbUxq3gizg1zD/6Yw/sI=";
     "rmcp-3.5.1" = "sha256-yczrrD6SnXhblos5oU6fbyDc7vkRah9DsF41hcaKzi4=";
     "runfiles-0.1.0" = "sha256-uJpVLcQh8wWZA3GPv9D8Nt43EOirajfDJ7eq/FB+tek=";
-    "tokio-tungstenite-0.28.0" = "sha256-V1xmnrfRWOcZZogelZEA4vvyMj2awCfHVA5/glQ6KAI=";
-    "tungstenite-0.27.0" = "sha256-VVHhk7l9J/sEmG3q/UuV/sQ3f+fGsmq5vumSy8vbMvw=";
+    "sqlx-core-0.9.0" = "sha256-9ODyOfoam3XhA8jjyBmgVZOe4BbY7ch4rRMQFgCjPwY=";
+    "tokio-tungstenite-0.28.0" = "sha256-YzevKd17AF2PY5/mv9DBzu/PmZ7cUdW5NoK9gApk41I=";
+    "tungstenite-0.27.0" = "sha256-v7QB+5fhkVM1omJurCiPRp4C4fGJXs204mNC2fImGl4=";
   };
 
   meta = with lib; {

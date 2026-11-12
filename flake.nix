@@ -24,12 +24,12 @@
       cargoToml = builtins.fromTOML (builtins.readFile ./codex-rs/Cargo.toml);
       cargoVersion = cargoToml.workspace.package.version;
 
-      # Preserve release versions. For mainline builds use stable rust-v0.166.0,
-      # whose release base is 95 commits behind the 2026-10-30 upstream baseline.
+      # Preserve release versions. Use official rust-v0.170.0-alpha.2 for mainline:
+      # its base is 15 commits behind the 2026-11-12 baseline; stable 0.167.2 is 505 behind.
       version =
         if cargoVersion != "0.0.0"
         then cargoVersion
-        else "0.166.0";
+        else "0.170.0-alpha.2";
     in
     {
       packages = forAllSystems (system:
