@@ -110,7 +110,8 @@ buildRustPackage (_: {
     "nucleo-matcher-0.3.1" = "sha256-Hm4SxtTSBrcWpXrtSqeO0TACbUxq3gizg1zD/6Yw/sI=";
     "rmcp-3.5.1" = "sha256-yczrrD6SnXhblos5oU6fbyDc7vkRah9DsF41hcaKzi4=";
     "runfiles-0.1.0" = "sha256-uJpVLcQh8wWZA3GPv9D8Nt43EOirajfDJ7eq/FB+tek=";
-    "sqlx-core-0.9.0" = "sha256-9ODyOfoam3XhA8jjyBmgVZOe4BbY7ch4rRMQFgCjPwY=";
+    # Hash the Git checkout: SQLx's attributes normalize CRLF test fixtures.
+    "sqlx-core-0.9.0" = "sha256-kLvUfUy6vmL9LYU7nzHv+iB6cIJm2CjDf9Yo6wpWrWg=";
     "tokio-tungstenite-0.28.0" = "sha256-YzevKd17AF2PY5/mv9DBzu/PmZ7cUdW5NoK9gApk41I=";
     "tungstenite-0.27.0" = "sha256-v7QB+5fhkVM1omJurCiPRp4C4fGJXs204mNC2fImGl4=";
   };
