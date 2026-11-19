@@ -83,7 +83,7 @@ buildRustPackage (_: {
     # Codex also locks windows 0.58, although MXC correctly depends on 0.62.
     # Apply the target/feature guard to the writable vendor copy, preserving the
     # version check whenever those generated bindings are actually compiled.
-    patch -d "$cargoDepsCopy/mxc-sdk-1.0.0" -p1 --fuzz=0 < ${./nix/mxc-bindings-target-check.patch}
+    patch -d "$cargoDepsCopy/mxc-sdk-1.1.0" -p1 --fuzz=0 < ${./nix/mxc-bindings-target-check.patch}
   '';
   doInstallCheck = stdenv.buildPlatform.canExecute stdenv.hostPlatform;
   installCheckPhase = ''
@@ -103,17 +103,17 @@ buildRustPackage (_: {
 
   cargoLock.outputHashes = {
     "v8-152.2.0" = "sha256-BB4a6uIcuZFmbkbXzdKOPq2vTu6pfZivPkHliOHnG3c=";
-    "crossterm-0.29.0" = "sha256-7ZzFZ6c6uU27ZxCGOPK82Aia4CzTnJwksAfbpTMPikY=";
+    "crossterm-0.29.0" = "sha256-ETTZx1d2rQqIOk6O822k2I2Hs9+uskbLB1pLke32P1k=";
     "h3-0.0.8" = "sha256-fgE0AMj5d4iattTC/yQwnACV8uEu+KR7wD29xfEm8M0=";
-    "mxc-sdk-1.0.0" = "sha256-AI4l2yCbB/4UWweLFhEefEPqSt/ZB1V+Mk/svdAT8No=";
+    "mxc-sdk-1.1.0" = "sha256-74e6KZTaErXycDIB5LxQduNvLhv1ULHlHmjmEW7sNmk=";
     "nucleo-0.5.0" = "sha256-Hm4SxtTSBrcWpXrtSqeO0TACbUxq3gizg1zD/6Yw/sI=";
     "nucleo-matcher-0.3.1" = "sha256-Hm4SxtTSBrcWpXrtSqeO0TACbUxq3gizg1zD/6Yw/sI=";
-    "rmcp-3.5.1" = "sha256-yczrrD6SnXhblos5oU6fbyDc7vkRah9DsF41hcaKzi4=";
+    "rmcp-3.6.0" = "sha256-yuWdAHp7ow5RkhQfnjot3Zxy17iGnkGdGYRB3T0kUgQ=";
     "runfiles-0.1.0" = "sha256-uJpVLcQh8wWZA3GPv9D8Nt43EOirajfDJ7eq/FB+tek=";
     # Hash the Git checkout: SQLx's attributes normalize CRLF test fixtures.
     "sqlx-core-0.9.0" = "sha256-kLvUfUy6vmL9LYU7nzHv+iB6cIJm2CjDf9Yo6wpWrWg=";
-    "tokio-tungstenite-0.28.0" = "sha256-YzevKd17AF2PY5/mv9DBzu/PmZ7cUdW5NoK9gApk41I=";
-    "tungstenite-0.27.0" = "sha256-v7QB+5fhkVM1omJurCiPRp4C4fGJXs204mNC2fImGl4=";
+    "tokio-tungstenite-0.28.0" = "sha256-fTNFTRNKyV6gwpoYzqKfBG1VKbF5Foh3OLwj9gkf44M=";
+    "tungstenite-0.27.0" = "sha256-iskbqB2ebP+4iyRE4Ve5TgGXt9z12/Dpznhmwh0wrvI=";
   };
 
   meta = with lib; {
