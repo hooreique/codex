@@ -44,4 +44,27 @@ jobs:
           name: ${{ vars.CACHIX_CACHE }}
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - run: nix build .#default --no-write-lock-file --print-build-logs
+      - name: Build on macOS
+        if: runner.os == 'macOS'
+        run: nix build .#default --no-write-lock-file --print-build-logs
+
+      - name: Build on Ubuntu
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          report_resources() {
+            date -u
+            free -m
+            df -h /nix "$RUNNER_TEMP"
+          }
+
+          (
+            while true; do
+              report_resources
+              sleep 60
+            done
+          ) &
+          monitor_pid=$!
+          trap 'kill "$monitor_pid" 2>/dev/null || true; report_resources || true' EXIT
+
+          nix build .#default --no-write-lock-file --print-build-logs --max-jobs 1 --cores 2
