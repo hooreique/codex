@@ -51,17 +51,22 @@ let
   };
 in
 buildRustPackage (_: {
-  env.STABLE_GIT_COMMIT = buildCommit;
-  env.PKG_CONFIG_PATH = lib.makeSearchPathOutput "dev" "lib/pkgconfig" (
-    [ openssl ] ++ lib.optionals stdenv.isLinux [ libcap ]
-  );
-  env.RUSTY_V8_ARCHIVE = fetchurl {
-    url = "${v8Release}/librusty_v8_ptrcomp_sandbox_release_${v8Target}.a.gz";
-    sha256 = v8Hashes.archive;
-  };
-  env.RUSTY_V8_SRC_BINDING_PATH = fetchurl {
-    url = "${v8Release}/src_binding_ptrcomp_sandbox_release_${v8Target}.rs";
-    sha256 = v8Hashes.bindings;
+  env = {
+    STABLE_GIT_COMMIT = buildCommit;
+    PKG_CONFIG_PATH = lib.makeSearchPathOutput "dev" "lib/pkgconfig" (
+      [ openssl ] ++ lib.optionals stdenv.isLinux [ libcap ]
+    );
+    RUSTY_V8_ARCHIVE = fetchurl {
+      url = "${v8Release}/librusty_v8_ptrcomp_sandbox_release_${v8Target}.a.gz";
+      sha256 = v8Hashes.archive;
+    };
+    RUSTY_V8_SRC_BINDING_PATH = fetchurl {
+      url = "${v8Release}/src_binding_ptrcomp_sandbox_release_${v8Target}.rs";
+      sha256 = v8Hashes.bindings;
+    };
+  } // lib.optionalAttrs (stdenv.hostPlatform.system == "aarch64-linux") {
+    # Reduce peak memory when building the CLI on ARM64 Linux runners.
+    CARGO_PROFILE_RELEASE_LTO = "off";
   };
   pname = "codex-rs";
   inherit version;
