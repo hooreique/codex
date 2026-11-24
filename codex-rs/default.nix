@@ -64,8 +64,8 @@ buildRustPackage (_: {
       url = "${v8Release}/src_binding_ptrcomp_sandbox_release_${v8Target}.rs";
       sha256 = v8Hashes.bindings;
     };
-  } // lib.optionalAttrs (stdenv.hostPlatform.system == "aarch64-linux") {
-    # Reduce peak memory when building the CLI on ARM64 Linux runners.
+  } // lib.optionalAttrs (builtins.elem stdenv.hostPlatform.system [ "aarch64-linux" "x86_64-linux" ]) {
+    # Reduce peak memory when building the CLI on Linux CI runners.
     CARGO_PROFILE_RELEASE_LTO = "off";
   };
   pname = "codex-rs";
